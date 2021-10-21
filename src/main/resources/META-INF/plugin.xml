@@ -1,14 +1,20 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.berezhkoe.cognitivecomplexityplugin</id>
-    <name>cognitive-complexity-plugin</name>
+    <name>Cognitive-Complexity</name>
     <vendor>berezhkoe</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="com.github.berezhkoe.cognitivecomplexityplugin.services.MyApplicationService"/>
         <projectService serviceImplementation="com.github.berezhkoe.cognitivecomplexityplugin.services.MyProjectService"/>
+        <codeInsight.inlayProvider
+                id="CognitiveComplexityInlayProvider"
+                implementationClass="com.github.berezhkoe.cognitivecomplexityplugin.CognitiveComplexityInlayProvider"
+                language="kotlin"/>
     </extensions>
 
     <applicationListeners>
