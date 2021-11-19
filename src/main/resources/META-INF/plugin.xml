@@ -8,17 +8,19 @@
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
 
+    <extensionPoints>
+        <extensionPoint name="cognitiveComplexityInlayProvider"
+                        interface="com.github.berezhkoe.cognitivecomplexityplugin.AbstractCognitiveComplexityInlayHintsProvider"
+                        dynamic="true"/>
+    </extensionPoints>
+
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.berezhkoe.cognitivecomplexityplugin.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.berezhkoe.cognitivecomplexityplugin.services.MyProjectService"/>
-        <codeInsight.inlayProvider
-                id="CognitiveComplexityInlayProvider"
-                implementationClass="com.github.berezhkoe.cognitivecomplexityplugin.CognitiveComplexityInlayProvider"
-                language="kotlin"/>
+               <codeInsight.inlayProviderFactory implementation="com.github.berezhkoe.cognitivecomplexityplugin.CognitiveComplexityInlayHintsProviderFactory" />
     </extensions>
 
-    <applicationListeners>
-        <listener class="com.github.berezhkoe.cognitivecomplexityplugin.listeners.MyProjectManagerListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
-    </applicationListeners>
+    <extensions defaultExtensionNs="com.github.berezhkoe.cognitivecomplexityplugin">
+        <cognitiveComplexityInlayProvider
+                id="KtCognitiveComplexityInlayProvider"
+                implementation="com.github.berezhkoe.cognitivecomplexityplugin.KtCognitiveComplexityInlayProvider" />
+    </extensions>
 </idea-plugin>
