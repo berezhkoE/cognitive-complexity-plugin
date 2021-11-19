@@ -1,31 +1,55 @@
 package com.github.berezhkoe.cognitivecomplexityplugin
 
-import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.LightPlatformCodeInsightTestCase
 import com.intellij.testFramework.TestDataPath
-import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import com.intellij.util.PsiErrorElementUtil
+import junit.framework.TestCase
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
+import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 
-@TestDataPath("\$CONTENT_ROOT/src/test/testData")
-class MyPluginTest : BasePlatformTestCase() {
+class MyPluginTest : LightPlatformCodeInsightTestCase() {
+    override fun getTestDataPath() = "src/test/testData/complexity"
 
-    fun testXMLFile() {
-        val psiFile = myFixture.configureByText(XmlFileType.INSTANCE, "<foo>bar</foo>")
-        val xmlFile = assertInstanceOf(psiFile, XmlFile::class.java)
+    private fun doTest(path: String, complexity: Int) {
+        configureByFile(path)
+        val getVisitor = KtCognitiveComplexityInlayHintsCollector(editor)::getElementVisitor
 
-        assertFalse(PsiErrorElementUtil.hasErrors(project, xmlFile.virtualFile))
-
-        assertNotNull(xmlFile.rootTag)
-
-        xmlFile.rootTag?.let {
-            assertEquals("foo", it.name)
-            assertEquals("bar", it.value.text)
+        PsiDocumentManager.getInstance(project).getPsiFile(editor.document)?.getChildOfType<KtNamedFunction>()?.let {
+            TestCase.assertEquals(complexity,
+                AbstractCognitiveComplexityInlayHintsCollector.getComplexityScore(it, getVisitor))
         }
     }
 
-    override fun getTestDataPath() = "src/test/testData/rename"
+    fun testFirst() {
+        doTest("/1.kt", 8)
+    }
 
-    fun testRename() {
-        myFixture.testRename("foo.xml", "foo_after.xml", "a2")
+    fun testSecond() {
+        doTest("/2.kt", 35)
+    }
+
+    fun testThird() {
+        doTest("/3.kt", 9)
+    }
+
+    fun testForth() {
+        doTest("/4.kt", 2)
+    }
+
+    fun testFifth() {
+        doTest("/5.kt", 7)
+    }
+
+    fun testSixth() {
+        doTest("/6.kt", 1)
+    }
+
+    fun testSeventh() {
+        doTest("/7.kt", 20)
+    }
+
+    fun testEighth() {
+        doTest("/8.kt", 21)
     }
 }
