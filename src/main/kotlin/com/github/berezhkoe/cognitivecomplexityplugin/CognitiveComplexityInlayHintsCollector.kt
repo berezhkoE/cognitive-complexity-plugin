@@ -1,18 +1,27 @@
 package com.github.berezhkoe.cognitivecomplexityplugin
 
+import com.github.berezhkoe.cognitivecomplexityplugin.settings.CognitiveComplexitySettings
 import com.intellij.codeInsight.hints.FactoryInlayHintsCollector
 import com.intellij.codeInsight.hints.InlayHintsSink
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
+import com.intellij.codeInsight.hints.presentation.InsetPresentation
+import com.intellij.codeInsight.hints.presentation.RoundWithBackgroundPresentation
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementVisitor
-import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
+import java.awt.Color
 
 @Suppress("UnstableApiUsage")
-abstract class AbstractCognitiveComplexityInlayHintsCollector(private val editor: Editor) :
+class CognitiveComplexityInlayHintsCollector(
+    private val editor: Editor,
+    private val getElementVisitor: (PsiElement) -> AbstractCognitiveComplexityElementVisitor,
+    private val isClass: (PsiElement) -> Boolean,
+    private val isClassMember: (PsiElement) -> Boolean
+) :
     FactoryInlayHintsCollector(editor) {
 
     companion object {
@@ -30,49 +39,68 @@ abstract class AbstractCognitiveComplexityInlayHintsCollector(private val editor
     }
 
     override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
-        if (element.isClass()) {
+        if (isClass(element)) {
             val complexityScore = evalClassComplexity(element)
 
             if (complexityScore > 0) {
                 sink.addBlockElement(
-                    offset = getStartOffset(element),
+                    offset = element.startOffset,
                     relatesToPrecedingText = false,
                     showAbove = true,
                     priority = 0,
-                    presentation = factory.text("Complexity score is $complexityScore")
-                        .shiftTo(getStartOffset(element), editor)
+                    presentation = getPresentation(element, complexityScore)
                 )
             }
-        } else if (element.isClassMember()) {
-            val complexityScore = getComplexityScore(element, this::getElementVisitor)
+        } else if (isClassMember(element)) {
+            val complexityScore = getComplexityScore(element, getElementVisitor)
 
             if (complexityScore > 0) {
                 sink.addBlockElement(
-                    offset = getStartOffset(element),
+                    offset = element.startOffset,
                     relatesToPrecedingText = false,
                     showAbove = true,
                     priority = 0,
-                    presentation = factory.text("Complexity score is $complexityScore")
-                        .shiftTo(getStartOffset(element), editor)
+                    presentation = getPresentation(element, complexityScore)
                 )
             }
         }
         return true
     }
 
-    /**
-     * @see PsiElement.isClass
-     * @return true if PsiElement is Class member with block,
-     *         for example function, constructor, initializer block, static block, etc.
-     */
-    protected abstract fun PsiElement.isClassMember(): Boolean
+    private fun getPresentation(element: PsiElement, complexityScore: Int): InlayPresentation {
+        return RoundWithBackgroundPresentation(
+            InsetPresentation(
+                factory.text(getInlayText(complexityScore)),
+                left = 7,
+                right = 7,
+                top = 1,
+                down = 1
+            ),
+            8,
+            8,
+            getInlayColor(complexityScore),
+            0.6f
+        ).shiftTo(element.startOffset, editor)
+    }
 
-    /**
-     * @return true if PsiElement is Class, Interface, Enum, etc.
-     */
-    protected abstract fun PsiElement.isClass(): Boolean
+    private fun getInlayText(complexityScore: Int): String {
+        return CognitiveComplexitySettings.getInstance().thresholdsList.stream()
+            .sorted { o1, o2 -> o1.threshold.compareTo(o2.threshold) }
+            .filter { complexityScore <= it.threshold }
+            .findFirst()
+            .map { it.text!!.replaceFirst("%complexity%", complexityScore.toString()) }
+            .orElse("Oh what a %complexity%!")
+    }
 
-    protected abstract fun getStartOffset(element: PsiElement): Int
+    private fun getInlayColor(complexityScore: Int): Color {
+        val settings = CognitiveComplexitySettings.getInstance()
+        return settings.thresholdsList.stream()
+            .sorted { o1, o2 -> o1.threshold.compareTo(o2.threshold) }
+            .filter { complexityScore <= it.threshold }
+            .findFirst()
+            .map { settings.getColor(it.color!!)!! }
+            .orElse(settings.ourDefaultColors["Blue"])
+    }
 
     private fun InlayPresentation.shiftTo(offset: Int, editor: Editor): InlayPresentation {
         val document = editor.document
@@ -81,16 +109,27 @@ abstract class AbstractCognitiveComplexityInlayHintsCollector(private val editor
         return factory.seq(factory.textSpacePlaceholder(column, true), this)
     }
 
-    abstract fun getElementVisitor(element: PsiElement): AbstractCognitiveComplexityElementVisitor
+//    /**
+//     * @see PsiElement.isClass
+//     * @return true if PsiElement is Class member with block,
+//     *         for example function, constructor, initializer block, static block, etc.
+//     */
+//    protected abstract fun PsiElement.isClassMember(): Boolean
+//
+//    /**
+//     * @return true if PsiElement is Class, Interface, Enum, etc.
+//     */
+//    protected abstract fun PsiElement.isClass(): Boolean
+//
+//    abstract fun getElementVisitor(element: PsiElement): AbstractCognitiveComplexityElementVisitor
 
     private fun evalClassComplexity(element: PsiElement): Int {
         var complexity = 0
 
-        val getVisitor = this::getElementVisitor
         element.accept(object : PsiRecursiveElementVisitor() {
             override fun visitElement(element: PsiElement) {
-                if (element.isClassMember()) {
-                    complexity += getComplexityScore(element, getVisitor)
+                if (isClassMember(element)) {
+                    complexity += getComplexityScore(element, getElementVisitor)
                 } else {
                     super.visitElement(element)
                 }
@@ -100,7 +139,7 @@ abstract class AbstractCognitiveComplexityInlayHintsCollector(private val editor
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other is AbstractCognitiveComplexityInlayHintsCollector) {
+        if (other is CognitiveComplexityInlayHintsCollector) {
             return editor == other.editor
         }
         return false
