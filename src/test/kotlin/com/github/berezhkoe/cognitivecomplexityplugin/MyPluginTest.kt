@@ -1,23 +1,22 @@
 package com.github.berezhkoe.cognitivecomplexityplugin
 
+import com.github.berezhkoe.cognitivecomplexityplugin.kotlin.KtCognitiveComplexityInlayProvider
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase
-import com.intellij.testFramework.TestDataPath
 import junit.framework.TestCase
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
-import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 
 class MyPluginTest : LightPlatformCodeInsightTestCase() {
     override fun getTestDataPath() = "src/test/testData/complexity"
 
     private fun doTest(path: String, complexity: Int) {
         configureByFile(path)
-        val getVisitor = KtCognitiveComplexityInlayHintsCollector(editor)::getElementVisitor
+        val getVisitor = KtCognitiveComplexityInlayProvider()::getElementVisitor
 
         PsiDocumentManager.getInstance(project).getPsiFile(editor.document)?.getChildOfType<KtNamedFunction>()?.let {
             TestCase.assertEquals(complexity,
-                AbstractCognitiveComplexityInlayHintsCollector.getComplexityScore(it, getVisitor))
+                CognitiveComplexityInlayHintsCollector.getComplexityScore(it, getVisitor))
         }
     }
 

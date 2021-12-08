@@ -1,26 +1,33 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.berezhkoe.cognitivecomplexityplugin</id>
+    <id>berezhkoe.cognitivecomplexityplugin</id>
     <name>Cognitive-Complexity</name>
-    <vendor>berezhkoe</vendor>
+    <vendor email="berezhko.ei@gmail.com">Berezhko Ekaterina</vendor>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.java</depends>
-    <depends>org.jetbrains.kotlin</depends>
+    <depends optional="true" config-file="berezhkoe.cognitivecomplexityplugin-withJava.xml">com.intellij.java</depends>
+    <depends optional="true" config-file="berezhkoe.cognitivecomplexityplugin-withKotlin.xml">org.jetbrains.kotlin</depends>
 
     <extensionPoints>
-        <extensionPoint name="cognitiveComplexityInlayProvider"
-                        interface="com.github.berezhkoe.cognitivecomplexityplugin.AbstractCognitiveComplexityInlayHintsProvider"
+        <extensionPoint name="languageInfoProvider"
+                        interface="com.github.berezhkoe.cognitivecomplexityplugin.LanguageInfoProvider"
                         dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
-               <codeInsight.inlayProviderFactory implementation="com.github.berezhkoe.cognitivecomplexityplugin.CognitiveComplexityInlayHintsProviderFactory" />
+        <codeInsight.inlayProviderFactory
+                implementation="com.github.berezhkoe.cognitivecomplexityplugin.CognitiveComplexityInlayHintsProviderFactory"/>
+        <applicationConfigurable parentId="tools"
+                                 instance="com.github.berezhkoe.cognitivecomplexityplugin.settings.CognitiveComplexitySettingsConfigurable"
+                                 id="Settings.CognitiveComplexity"/>
+        <applicationService
+                serviceImplementation="com.github.berezhkoe.cognitivecomplexityplugin.settings.CognitiveComplexitySettings"/>
+
     </extensions>
 
-    <extensions defaultExtensionNs="com.github.berezhkoe.cognitivecomplexityplugin">
-        <cognitiveComplexityInlayProvider
+    <extensions defaultExtensionNs="berezhkoe.cognitivecomplexityplugin">
+        <languageInfoProvider
                 id="KtCognitiveComplexityInlayProvider"
-                implementation="com.github.berezhkoe.cognitivecomplexityplugin.KtCognitiveComplexityInlayProvider" />
+                implementation="com.github.berezhkoe.cognitivecomplexityplugin.kotlin.KtCognitiveComplexityInlayProvider"/>
     </extensions>
 </idea-plugin>

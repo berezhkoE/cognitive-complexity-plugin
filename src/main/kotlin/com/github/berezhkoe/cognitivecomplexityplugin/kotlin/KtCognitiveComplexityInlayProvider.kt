@@ -1,11 +1,18 @@
-package com.github.berezhkoe.cognitivecomplexityplugin
+package com.github.berezhkoe.cognitivecomplexityplugin.kotlin
 
+import com.github.berezhkoe.cognitivecomplexityplugin.CognitiveComplexityInlayHintsCollector
+import com.github.berezhkoe.cognitivecomplexityplugin.LanguageInfoProvider
+import com.github.berezhkoe.cognitivecomplexityplugin.settings.CognitiveComplexitySettings
+import com.intellij.codeInsight.hints.*
+import com.intellij.lang.Language
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.tree.TokenSet
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.inspections.RecursivePropertyAccessorInspection
 import org.jetbrains.kotlin.idea.util.getReceiverTargetDescriptor
@@ -22,11 +29,21 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
-class KtCognitiveComplexityInlayHintsCollector(editor: Editor) :
-    AbstractCognitiveComplexityInlayHintsCollector(editor) {
+@Suppress("UnstableApiUsage")
+class KtCognitiveComplexityInlayProvider : LanguageInfoProvider() {
+    override fun getLanguage(): Language = KotlinLanguage.INSTANCE
 
-    override fun getElementVisitor(element: PsiElement): AbstractCognitiveComplexityElementVisitor {
-        return object : AbstractCognitiveComplexityElementVisitor() {
+//    override fun getCollectorFor(
+//        file: PsiFile,
+//        editor: Editor,
+//        settings: NoSettings,
+//        sink: InlayHintsSink
+//    ): InlayHintsCollector {
+//        return KtCognitiveComplexityInlayHintsCollector(editor)
+//    }
+
+    override fun getElementVisitor(element: PsiElement): CognitiveComplexityInlayHintsCollector.AbstractCognitiveComplexityElementVisitor {
+        return object : CognitiveComplexityInlayHintsCollector.AbstractCognitiveComplexityElementVisitor() {
             override fun processElement(element: PsiElement) {
                 when (element) {
                     is KtWhileExpression -> increaseComplexityAndNesting()
@@ -80,18 +97,6 @@ class KtCognitiveComplexityInlayHintsCollector(editor: Editor) :
 
             override fun PsiElement.isBinaryExpression(): Boolean {
                 return this is KtBinaryExpression && getLogicalOperationsTokens().contains(operationToken)
-            }
-
-            private fun KtParenthesizedExpression.containsComplexBinaryExpression(): Boolean {
-                return containsBinaryExpression() && (expression as KtBinaryExpression).containsBinaryExpression()
-            }
-
-            private fun KtParenthesizedExpression.containsBinaryExpression(): Boolean {
-                return expression is KtBinaryExpression
-            }
-
-            private fun KtBinaryExpression.containsBinaryExpression(): Boolean {
-                return left is KtBinaryExpression || right is KtBinaryExpression
             }
 
             private fun processComplexBinaryExpression(element: KtBinaryExpression) {
@@ -253,17 +258,13 @@ class KtCognitiveComplexityInlayHintsCollector(editor: Editor) :
         }
     }
 
-    override fun PsiElement.isClassMember(): Boolean {
-        return this is KtSecondaryConstructor || this is KtClassInitializer
-                || this is KtNamedFunction || this is KtObjectDeclaration
-                || this is KtPropertyAccessor
+    override fun isClassMember(element: PsiElement): Boolean {
+        return element is KtSecondaryConstructor || element is KtClassInitializer
+                || element is KtNamedFunction || element is KtObjectDeclaration
+                || (element is KtPropertyAccessor && CognitiveComplexitySettings.getInstance().showPropertyAccessorsComplexity)
     }
 
-    override fun PsiElement.isClass(): Boolean {
-        return this is KtClass
-    }
-
-    override fun getStartOffset(element: PsiElement): Int {
-        return element.startOffset
+    override fun isClass(element: PsiElement): Boolean {
+        return element is KtClass
     }
 }

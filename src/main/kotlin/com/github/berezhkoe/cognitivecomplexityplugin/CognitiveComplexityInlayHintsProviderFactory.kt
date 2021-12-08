@@ -7,7 +7,7 @@ import com.intellij.openapi.project.Project
 @Suppress("UnstableApiUsage")
 class CognitiveComplexityInlayHintsProviderFactory : InlayHintsProviderFactory {
     override fun getProvidersInfo(project: Project): List<ProviderInfo<out Any>> {
-        return AbstractCognitiveComplexityInlayHintsProvider.EP_NAME
+        return LanguageInfoProvider.EP_NAME
             .extensionList.map { ProviderInfo(it.getLanguage(), it) }
     }
 }
