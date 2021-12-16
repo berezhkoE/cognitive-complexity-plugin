@@ -1,4 +1,4 @@
-package com.github.berezhkoe.cognitivecomplexityplugin.settings
+package cc.settings
 
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.components.SimplePersistentStateComponent
@@ -9,14 +9,13 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import java.awt.Color
 import java.util.*
-import java.util.Map
 
 @State(name = "CognitiveComplexitySetting", storages = [(Storage("cognitive_complexity.xml"))])
-class CognitiveComplexitySettings :
-    SimplePersistentStateComponent<CognitiveComplexitySettingsState>(CognitiveComplexitySettingsState()) {
+class CCSettings :
+    SimplePersistentStateComponent<CCSettingsState>(CCSettingsState()) {
 
     companion object {
-        fun getInstance(): CognitiveComplexitySettings {
+        fun getInstance(): CCSettings {
             return service()
         }
     }
@@ -33,21 +32,20 @@ class CognitiveComplexitySettings :
             state.thresholdsList = value
         }
 
-    var enableHighlighting
-        get() = state.enableHighlighting
+    var defaultText
+        get() = state.defaultText
         set(value) {
-            state.enableHighlighting = value
+            state.defaultText = value
         }
 
-
-    val ourDefaultColors: MutableMap<String, Color> = Map.of(
-        "Blue", JBColor.namedColor("HintColor.Blue", JBColor(0xeaf6ff, 0x4f556b)),
-        "Green", JBColor.namedColor("HintColor.Green", JBColor(0xeffae7, 0x49544a)),
-        "Orange", JBColor.namedColor("HintColor.Orange", JBColor(0xf6e9dc, 0x806052)),
-        "Rose", JBColor.namedColor("HintColor.Rose", JBColor(0xf2dcda, 0x6e535b)),
-        "Violet", JBColor.namedColor("HintColor.Violet", JBColor(0xe6e0f1, 0x534a57)),
-        "Yellow", JBColor.namedColor("HintColor.Yellow", JBColor(0xffffe4, 0x4f4b41)),
-//        "Gray", JBColor.namedColor("HintColor.Gray", JBColor(0xf5f5f5, 0x45484a))
+    val ourDefaultColors: Map<String, Color> = mapOf(
+        "Blue" to JBColor.namedColor("HintColor.Blue", JBColor(0xeaf6ff, 0x4f556b)),
+        "Green" to JBColor.namedColor("HintColor.Green", JBColor(0xeffae7, 0x49544a)),
+        "Orange" to JBColor.namedColor("HintColor.Orange", JBColor(0xf6e9dc, 0x806052)),
+        "Rose" to JBColor.namedColor("HintColor.Rose", JBColor(0xf2dcda, 0x6e535b)),
+        "Violet" to JBColor.namedColor("HintColor.Violet", JBColor(0xe6e0f1, 0x534a57)),
+        "Yellow" to JBColor.namedColor("HintColor.Yellow", JBColor(0xffffe4, 0x4f4b41)),
+        "Gray" to JBColor.namedColor("HintColor.Gray", JBColor(0xf5f5f5, 0x45484a))
     )
 
     fun getColor(id: String): Color? {
@@ -57,7 +55,7 @@ class CognitiveComplexitySettings :
 
     fun getColorName(id: String): String {
         return if (ourDefaultColors.containsKey(id)) IdeBundle.message(
-            "color.name." + id.toLowerCase(
+            "color.name." + id.lowercase(
                 Locale.ENGLISH
             )
         ) else IdeBundle.message("settings.file.color.custom.name")

@@ -1,13 +1,14 @@
-package com.github.berezhkoe.cognitivecomplexityplugin.settings
+package cc.settings
 
+import cc.CCBundle.message
 import com.intellij.openapi.components.BaseState
 
-class CognitiveComplexitySettingsState: BaseState() {
+class CCSettingsState: BaseState() {
     var showPropertyAccessorComplexity by property(false)
 
     var thresholdsList by list<ThresholdState>()
 
-    var enableHighlighting by property(false)
+    var defaultText by string(message("default.hint.text"))
 
     class ThresholdState: BaseState() {
         companion object {
