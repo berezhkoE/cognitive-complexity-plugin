@@ -1,0 +1,7 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="berezhkoe.cognitivecomplexity">
+        <languageInfoProvider
+                id="KtCognitiveComplexityInlayProvider"
+                implementation="cc.kotlin.KtCCInlayProvider"/>
+    </extensions>
+</idea-plugin>
