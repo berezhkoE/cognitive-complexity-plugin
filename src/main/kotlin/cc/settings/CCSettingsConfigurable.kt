@@ -19,7 +19,6 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.ui.*
-import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.hover.TableHoverListener
@@ -32,7 +31,6 @@ import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
-
 
 @Suppress("UnstableApiUsage")
 class CognitiveComplexitySettingsConfigurable :
@@ -48,9 +46,6 @@ class CognitiveComplexitySettingsConfigurable :
 
     private var panel: DialogPanel = DialogPanel(GridBagLayout())
 
-    private val checkBox: JBCheckBox =
-        JBCheckBox(message("settings.show.property.accessor.complexity"), settings.showPropertyAccessorsComplexity)
-
     private val defaultText = JBTextField(message("default.hint.text"))
 
     override fun createPanel(): DialogPanel {
@@ -59,29 +54,12 @@ class CognitiveComplexitySettingsConfigurable :
             defaultFill = GridBagConstraints.HORIZONTAL
             nextLine()
         }
-        createKotlinConfigurationPanel(gb)
-        gb.nextLine()
         createHintsConfigurationPanel(gb)
         panel.reset()
         return panel
     }
 
-    private fun createKotlinConfigurationPanel(gb: GridBag) {
-        panel.add(
-            TitledSeparator(message("settings.title.kotlin.configurations")),
-            gb.next().fillCell().weightx(0.0).insets(5, 0, 5, 0).apply { gridwidth = 3 }
-        )
-        gb.nextLine()
-        panel.add(checkBox, gb.next().insetLeft(20))
-    }
-
     private fun createHintsConfigurationPanel(gb: GridBag) {
-        panel.add(
-            TitledSeparator(message("settings.title.hints.configurations")),
-            gb.next().fillCellHorizontally().weightx(0.0).insets(15, 0, 5, 0).apply { gridwidth = 3 }
-        )
-        gb.nextLine()
-
         panel.add(
             JBLabel(message("settings.default.text")),
             gb.next().insetLeft(20)
@@ -116,14 +94,12 @@ class CognitiveComplexitySettingsConfigurable :
     override fun isModified(): Boolean {
         return super.isModified()
                 || thresholdsTableModel.isModified
-                || settings.showPropertyAccessorsComplexity != checkBox.isSelected
                 || settings.defaultText != defaultText.text
     }
 
     override fun apply() {
         super.apply()
         thresholdsTableModel.apply()
-        settings.showPropertyAccessorsComplexity = checkBox.isSelected
         settings.defaultText = defaultText.text
 
         invokeLater {
@@ -137,7 +113,6 @@ class CognitiveComplexitySettingsConfigurable :
     override fun reset() {
         super.reset()
         thresholdsTableModel.reset()
-        checkBox.isSelected = settings.showPropertyAccessorsComplexity
         defaultText.text = settings.defaultText
     }
 }

@@ -20,12 +20,6 @@ class CCSettings :
         }
     }
 
-    var showPropertyAccessorsComplexity
-        get() = state.showPropertyAccessorComplexity
-        set(value) {
-            state.showPropertyAccessorComplexity = value
-        }
-
     var thresholdsList
         get() = state.thresholdsList
         set(value) {

@@ -1,7 +1,7 @@
 package cc.kotlin
 
 import cc.LanguageInfoProvider
-import cc.settings.CCSettings
+import cc.kotlin.settings.KtCCSettings
 import com.intellij.lang.Language
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementVisitor
@@ -27,6 +27,9 @@ import org.jetbrains.kotlin.util.OperatorNameConventions
 
 @Suppress("UnstableApiUsage")
 class KtCCInlayProvider : LanguageInfoProvider() {
+    private val settings
+        get() = KtCCSettings.getInstance()
+
     override fun getLanguage(): Language = KotlinLanguage.INSTANCE
 
     override fun getElementVisitor(element: PsiElement): CCElementVisitor {
@@ -41,9 +44,7 @@ class KtCCInlayProvider : LanguageInfoProvider() {
     )
 
     private fun showPropertyAccessorsComplexity(element: PsiElement): Boolean =
-        element is KtPropertyAccessor && CCSettings.getInstance().showPropertyAccessorsComplexity
-
-    private fun showEnumEntryComplexity() : Boolean = true
+        element is KtPropertyAccessor && settings.showPropertyAccessorsComplexity
 
     override fun isClassMember(element: PsiElement): Boolean {
         return element::class.java in classMemberList || showPropertyAccessorsComplexity(element)
