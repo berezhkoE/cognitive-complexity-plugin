@@ -110,18 +110,20 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
 
         private fun getPresentation(element: PsiElement, complexityScore: Int): InlayPresentation? {
             val hintSettings = getHintSettings(complexityScore) ?: return null
-            return RoundWithBackgroundPresentation(
-                InsetPresentation(
-                    factory.text(getInlayText(complexityScore, hintSettings)),
-                    left = 7,
-                    right = 7,
-                    top = 2,
-                    down = 2
-                ),
-                8,
-                8,
-                getInlayColor(hintSettings),
-                0.9f
+            return InsetPresentation(
+                RoundWithBackgroundPresentation(
+                    InsetPresentation(
+                        factory.text(getInlayText(complexityScore, hintSettings)),
+                        left = 7,
+                        right = 7,
+                        top = 2,
+                        down = 2
+                    ),
+                    8,
+                    8,
+                    getInlayColor(hintSettings),
+                    0.9f
+                ), top = 2, down = 2
             ).shiftTo(element.startOffsetSkippingComments, editor)
         }
 
