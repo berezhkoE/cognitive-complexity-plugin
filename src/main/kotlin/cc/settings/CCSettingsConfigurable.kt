@@ -21,6 +21,8 @@ import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.ui.*
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.hover.TableHoverListener
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.*
@@ -44,51 +46,42 @@ class CognitiveComplexitySettingsConfigurable :
     private val settings
         get() = CCSettings.getInstance()
 
-    private var panel: DialogPanel = DialogPanel(GridBagLayout())
+    private var panel: DialogPanel = DialogPanel(BorderLayout())
 
     private val defaultText = JBTextField(message("default.hint.text"))
 
     override fun createPanel(): DialogPanel {
-        val gb = GridBag().apply {
-            defaultAnchor = GridBagConstraints.WEST
-            defaultFill = GridBagConstraints.HORIZONTAL
-            nextLine()
-        }
-        createHintsConfigurationPanel(gb)
+        val north = JPanel(HorizontalLayout(10))
+        north.add(
+            HorizontalLayout.LEFT,
+            JBLabel(message("settings.default.text"))
+        )
+        north.add(
+            HorizontalLayout.LEFT,
+            defaultText
+        )
+
+        val south = JPanel(VerticalLayout(5))
+        south.border = JBUI.Borders.emptyTop(5)
+        south.add(
+            VerticalLayout.TOP,
+            ComponentPanelBuilder.createCommentComponent(message("settings.table.description"), true)
+        )
+        south.add(
+            VerticalLayout.TOP,
+            ComponentPanelBuilder.createCommentComponent(message("settings.table.description.additional.small"), true)
+        )
+        south.add(
+            VerticalLayout.TOP,
+            ComponentPanelBuilder.createCommentComponent(message("settings.table.description.additional.big"), true)
+        )
+
+        panel.add(BorderLayout.NORTH, north)
+        panel.add(BorderLayout.CENTER, thresholdsTableModel.createComponent())
+        panel.add(BorderLayout.SOUTH, south)
+
         panel.reset()
         return panel
-    }
-
-    private fun createHintsConfigurationPanel(gb: GridBag) {
-        panel.add(
-            JBLabel(message("settings.default.text")),
-            gb.next().insetLeft(20)
-        )
-        panel.add(
-            defaultText,
-            gb.next()
-        )
-        gb.nextLine()
-
-        panel.add(
-            thresholdsTableModel.createComponent(),
-            gb.next().fillCell().weightx(0.0).weighty(1.0).insets(10, 0, 1, 0).apply { gridwidth = 3 }
-        )
-        gb.nextLine()
-        panel.add(
-            ComponentPanelBuilder.createCommentComponent(message("settings.table.description"), true),
-            gb.next()
-        )
-        gb.nextLine()
-        panel.add(
-            ComponentPanelBuilder.createCommentComponent(message("settings.table.description.additional.small"), true),
-            gb.next()
-        )
-        gb.nextLine()
-        panel.add(
-            ComponentPanelBuilder.createCommentComponent(message("settings.table.description.additional.big"), true),
-            gb.next()
-        )
     }
 
     override fun isModified(): Boolean {
