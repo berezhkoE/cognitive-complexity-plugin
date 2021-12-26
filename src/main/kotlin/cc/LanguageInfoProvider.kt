@@ -128,18 +128,21 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
         }
 
         private fun getHintSettings(complexityScore: Int): CCSettingsState.ThresholdState? {
-            val sortedSettings = settings.thresholdsList
-                .apply { sortWith { o1, o2 -> o1.threshold.compareTo(o2.threshold) } }
-            return sortedSettings
-                .firstOrNull {
-                    if (complexityScore == 0) {
-                        it.threshold == 0
-                    } else {
-                        complexityScore <= it.threshold
-                    }
-                } ?: return if (complexityScore != 0) {
-                sortedSettings.last()
-            } else null
+            if (settings.thresholdsList.isNotEmpty()) {
+                val sortedSettings = settings.thresholdsList
+                    .apply { sortWith { o1, o2 -> o1.threshold.compareTo(o2.threshold) } }
+                return sortedSettings
+                    .firstOrNull {
+                        if (complexityScore == 0) {
+                            it.threshold == 0
+                        } else {
+                            complexityScore <= it.threshold
+                        }
+                    } ?: return if (complexityScore != 0) {
+                    sortedSettings.last()
+                } else null
+            }
+            return null
         }
 
         private fun getInlayText(complexityScore: Int, hintSettings: CCSettingsState.ThresholdState): String {
