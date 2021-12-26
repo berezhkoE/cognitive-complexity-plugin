@@ -4,4 +4,13 @@
                 id="KtCognitiveComplexityInlayProvider"
                 implementation="cc.kotlin.KtCCInlayProvider"/>
     </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable parentId="Settings.CognitiveComplexity"
+                                 instance="cc.kotlin.settings.KtCCSettingsConfigurable"
+                                 id="Settings.CognitiveComplexity.Kotlin"/>
+        <applicationService
+                serviceImplementation="cc.kotlin.settings.KtCCSettings"/>
+
+    </extensions>
 </idea-plugin>

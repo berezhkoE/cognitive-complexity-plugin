@@ -4,8 +4,6 @@ import cc.CCBundle.message
 import com.intellij.openapi.components.BaseState
 
 class CCSettingsState: BaseState() {
-    var showPropertyAccessorComplexity by property(false)
-
     var thresholdsList by list<ThresholdState>()
 
     var defaultText by string(message("default.hint.text"))
