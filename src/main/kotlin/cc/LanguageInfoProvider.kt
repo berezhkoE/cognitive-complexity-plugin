@@ -61,7 +61,7 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
 
     abstract fun isClassMember(element: PsiElement): Boolean
 
-    abstract fun isClass(element: PsiElement): Boolean
+    abstract fun isClassWithBody(element: PsiElement): Boolean
 
     class CCInlayHintsCollector(
         private val editor: Editor,
@@ -88,7 +88,7 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
         }
 
         override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
-            val complexityScore = if (provider.isClass(element)) {
+            val complexityScore = if (provider.isClassWithBody(element)) {
                 evalClassComplexity(element)
             } else if (provider.isClassMember(element)) {
                 getComplexityScore(element, provider::getElementVisitor)

@@ -50,8 +50,8 @@ class KtCCInlayProvider : LanguageInfoProvider() {
         return element::class.java in classMemberList || showPropertyAccessorsComplexity(element)
     }
 
-    override fun isClass(element: PsiElement): Boolean {
-        return element is KtClass
+    override fun isClassWithBody(element: PsiElement): Boolean {
+        return element is KtClass && element.body != null
     }
 
     class KtCCElementVisitor : CCElementVisitor() {
