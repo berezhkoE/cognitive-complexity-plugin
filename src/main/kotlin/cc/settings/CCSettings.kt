@@ -32,6 +32,12 @@ class CCSettings :
             state.defaultText = value
         }
 
+    var showBeforeAnnotations
+        get() = state.showBeforeAnnotations
+        set(value) {
+            state.showBeforeAnnotations = value
+        }
+
     val ourDefaultColors: Map<String, Color> = mapOf(
         "Blue" to JBColor.namedColor("HintColor.Blue", JBColor(0xeaf6ff, 0x4f556b)),
         "Green" to JBColor.namedColor("HintColor.Green", JBColor(0xeffae7, 0x49544a)),

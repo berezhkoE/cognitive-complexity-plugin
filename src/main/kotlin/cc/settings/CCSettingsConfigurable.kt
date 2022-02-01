@@ -19,9 +19,9 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.ui.*
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.hover.TableHoverListener
 import com.intellij.ui.table.JBTable
@@ -50,16 +50,27 @@ class CognitiveComplexitySettingsConfigurable :
 
     private val defaultText = JBTextField(message("default.hint.text"))
 
+    private val showHintBeforeAnnotations =
+        JBCheckBox(message("settings.show.hint.before.annotations"), settings.showBeforeAnnotations)
+
     override fun createPanel(): DialogPanel {
-        val north = JPanel(HorizontalLayout(10))
+        val gb = GridBag().apply {
+            defaultAnchor = GridBagConstraints.WEST
+            defaultFill = GridBagConstraints.HORIZONTAL
+            nextLine()
+        }
+        val north = JPanel(GridBagLayout())
         north.add(
-            HorizontalLayout.LEFT,
-            JBLabel(message("settings.default.text"))
+            JBLabel(message("settings.default.text")), gb.next().weightx(0.5)
         )
         north.add(
-            HorizontalLayout.LEFT,
-            defaultText
+            defaultText, gb.next().weightx(0.5)
         )
+        gb.nextLine()
+        north.add(
+            showHintBeforeAnnotations, gb.next().weightx(0.0).apply { gb.gridwidth = 2 }
+        )
+        north.border = JBUI.Borders.emptyBottom(5)
 
         val south = JPanel(VerticalLayout(5))
         south.border = JBUI.Borders.emptyTop(5)
@@ -88,12 +99,14 @@ class CognitiveComplexitySettingsConfigurable :
         return super.isModified()
                 || thresholdsTableModel.isModified
                 || settings.defaultText != defaultText.text
+                || settings.showBeforeAnnotations != showHintBeforeAnnotations.isSelected
     }
 
     override fun apply() {
         super.apply()
         thresholdsTableModel.apply()
         settings.defaultText = defaultText.text
+        settings.showBeforeAnnotations = showHintBeforeAnnotations.isSelected
 
         invokeLater {
             InlayHintsPassFactory.forceHintsUpdateOnNextPass()
@@ -107,6 +120,7 @@ class CognitiveComplexitySettingsConfigurable :
         super.reset()
         thresholdsTableModel.reset()
         defaultText.text = settings.defaultText
+        showHintBeforeAnnotations.isSelected = settings.showBeforeAnnotations
     }
 }
 
