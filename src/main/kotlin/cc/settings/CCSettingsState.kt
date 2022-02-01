@@ -8,6 +8,8 @@ class CCSettingsState: BaseState() {
 
     var defaultText by string(message("default.hint.text"))
 
+    var showBeforeAnnotations by property(true)
+
     class ThresholdState: BaseState() {
         companion object {
             fun fromMapping(threshold: Int, color: String, text: String) = ThresholdState().apply {

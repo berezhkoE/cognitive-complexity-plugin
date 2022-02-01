@@ -16,6 +16,7 @@ import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import java.awt.Color
 import javax.swing.JPanel
@@ -97,7 +98,11 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
             complexityScore?.let { score ->
                 getPresentation(element, score)?.let {
                     sink.addBlockElement(
-                        offset = element.startOffsetSkippingComments,
+                        offset = if (settings.showBeforeAnnotations) {
+                            element.startOffsetSkippingComments
+                        } else {
+                            element.textOffset
+                        },
                         relatesToPrecedingText = false,
                         showAbove = true,
                         priority = BlockInlayPriority.CODE_VISION,
@@ -124,7 +129,13 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
                     getInlayColor(hintSettings),
                     0.9f
                 ), top = 2, down = 2
-            ).shiftTo(element.startOffsetSkippingComments, editor)
+            ).shiftTo(
+                if (settings.showBeforeAnnotations) {
+                    element.startOffsetSkippingComments
+                } else {
+                    element.startOffset
+                }, editor
+            )
         }
 
         private fun getHintSettings(complexityScore: Int): CCSettingsState.ThresholdState? {
