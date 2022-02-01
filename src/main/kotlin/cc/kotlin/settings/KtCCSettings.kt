@@ -5,7 +5,7 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 
-@State(name = "KotlinCCSetting", storages = [(Storage("cognitive_complexity_kotlin.xml"))])
+@State(name = "KotlinCCSetting", storages = [(Storage("cognitive_complexity.xml"))])
 class KtCCSettings :
     SimplePersistentStateComponent<KtCCSettingsState>(KtCCSettingsState()) {
 
