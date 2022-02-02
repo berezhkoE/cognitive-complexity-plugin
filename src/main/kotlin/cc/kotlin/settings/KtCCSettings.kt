@@ -15,9 +15,9 @@ class KtCCSettings :
         }
     }
 
-    var showPropertyAccessorsComplexity
-        get() = state.showPropertyAccessorComplexity
+    var considerPropertyAccessorsComplexity
+        get() = state.considerPropertyAccessorComplexity
         set(value) {
-            state.showPropertyAccessorComplexity = value
+            state.considerPropertyAccessorComplexity = value
         }
 }
