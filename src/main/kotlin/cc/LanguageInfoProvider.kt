@@ -22,6 +22,7 @@ import java.awt.Color
 import javax.swing.JPanel
 import com.intellij.openapi.project.Project
 import com.intellij.psi.util.parentOfType
+import com.intellij.util.applyIf
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 
@@ -187,26 +188,36 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
 
             private fun getPresentation(element: PsiElement, complexityScore: Int): InlayPresentation? {
                 val hintSettings = getHintSettings(complexityScore) ?: return null
-                return InsetPresentation(
-                    RoundWithBackgroundPresentation(
-                        InsetPresentation(
-                            factory.text(getInlayText(complexityScore, hintSettings)),
-                            left = 7,
-                            right = 7,
-                            top = 2,
-                            down = 2
-                        ),
-                        8,
-                        8,
-                        getInlayColor(hintSettings),
-                        0.9f
-                    ), top = 2, down = 2
-                ).shiftTo(
+                return getTextPresentation(
+                    complexityScore,
+                    hintSettings
+                ).applyIf(hintSettings.color != CCBundle.message("settings.colors.dialog.no.color")) {
+                    InsetPresentation(
+                        RoundWithBackgroundPresentation(
+                            InsetPresentation(this, left = 7, right = 7),
+                            8,
+                            8,
+                            getInlayColor(hintSettings),
+                            0.9f
+                        ), top = 2, down = 2
+                    )
+                }.shiftTo(
                     if (element is KtObjectDeclaration && element.parentOfType<KtProperty>() != null) {
                         element.parentOfType<KtProperty>()!!.startOffset
                     } else {
                         element.startOffset
                     }, editor
+                )
+            }
+
+            private fun getTextPresentation(
+                complexityScore: Int,
+                hintSettings: CCSettingsState.ThresholdState
+            ): InlayPresentation {
+                return InsetPresentation(
+                    factory.text(getInlayText(complexityScore, hintSettings)),
+                    top = 2,
+                    down = 2
                 )
             }
 

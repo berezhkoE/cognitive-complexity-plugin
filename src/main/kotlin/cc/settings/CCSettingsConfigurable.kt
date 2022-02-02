@@ -159,7 +159,7 @@ private class ThresholdsTableModel(val settings: CCSettings) :
 
     private fun resolveCustomColor(value: Any?): String? {
         val name = value as? String ?: return null
-        if (null != settings.getColor(name)) return name
+        if (null != settings.getColor(name) || message("settings.colors.dialog.no.color") == name) return name
         val parent = table ?: return null
         return ColorChooser.chooseColor(parent, message("settings.colors.dialog.choose.color"), null)
             ?.let { ColorUtil.toHex(it) }
@@ -193,10 +193,10 @@ private class ThresholdsTableModel(val settings: CCSettings) :
 
     fun getColors(): List<String> {
         val list = mutableListOf<String>()
+        list += message("settings.colors.dialog.no.color")
         for (key in settings.ourDefaultColors.keys) {
             list += IdeBundle.message("color.name." + key.lowercase(Locale.ENGLISH))
         }
-        list.sort()
         list += IdeBundle.message("settings.file.color.custom.name")
         return list
     }
