@@ -1,5 +1,6 @@
 package cc.settings
 
+import cc.CCBundle.message
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State
@@ -40,12 +41,12 @@ class CCSettings :
 
     val ourDefaultColors: Map<String, Color> = mapOf(
         "Blue" to JBColor.namedColor("HintColor.Blue", JBColor(0xeaf6ff, 0x4f556b)),
+        "Gray" to JBColor.namedColor("HintColor.Gray", JBColor(0xf5f5f5, 0x45484a)),
         "Green" to JBColor.namedColor("HintColor.Green", JBColor(0xeffae7, 0x49544a)),
         "Orange" to JBColor.namedColor("HintColor.Orange", JBColor(0xf6e9dc, 0x806052)),
         "Rose" to JBColor.namedColor("HintColor.Rose", JBColor(0xf2dcda, 0x6e535b)),
         "Violet" to JBColor.namedColor("HintColor.Violet", JBColor(0xe6e0f1, 0x534a57)),
-        "Yellow" to JBColor.namedColor("HintColor.Yellow", JBColor(0xffffe4, 0x4f4b41)),
-        "Gray" to JBColor.namedColor("HintColor.Gray", JBColor(0xf5f5f5, 0x45484a))
+        "Yellow" to JBColor.namedColor("HintColor.Yellow", JBColor(0xffffe4, 0x4f4b41))
     )
 
     fun getColor(id: String): Color? {
@@ -54,7 +55,8 @@ class CCSettings :
     }
 
     fun getColorName(id: String): String {
-        return if (ourDefaultColors.containsKey(id)) IdeBundle.message(
+        return if (message("settings.colors.dialog.no.color") == id) id
+        else if (ourDefaultColors.containsKey(id)) IdeBundle.message(
             "color.name." + id.lowercase(
                 Locale.ENGLISH
             )
