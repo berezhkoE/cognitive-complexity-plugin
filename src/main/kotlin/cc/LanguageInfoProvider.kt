@@ -21,6 +21,9 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import java.awt.Color
 import javax.swing.JPanel
 import com.intellij.openapi.project.Project
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtProperty
 
 abstract class MyLanguageVisitor : PsiRecursiveElementVisitor(true) {
     override fun visitElement(element: PsiElement) {
@@ -199,8 +202,8 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
                         0.9f
                     ), top = 2, down = 2
                 ).shiftTo(
-                    if (settings.showBeforeAnnotations) {
-                        element.startOffsetSkippingComments
+                    if (element is KtObjectDeclaration && element.parentOfType<KtProperty>() != null) {
+                        element.parentOfType<KtProperty>()!!.startOffset
                     } else {
                         element.startOffset
                     }, editor
