@@ -23,10 +23,10 @@ class KtCCSettingsConfigurable : BoundSearchableConfigurable("Kotlin", "Kotlin",
 
     private var panel: DialogPanel = DialogPanel(GridBagLayout())
 
-    private val showPropertyAccessorsComplexity: JBCheckBox =
+    private val considerPropertyAccessorsComplexity: JBCheckBox =
         JBCheckBox(
             CCBundle.message("settings.kotlin.show.property.accessor.complexity"),
-            settings.showPropertyAccessorsComplexity
+            settings.considerPropertyAccessorsComplexity
         )
 
     override fun createPanel(): DialogPanel {
@@ -35,7 +35,7 @@ class KtCCSettingsConfigurable : BoundSearchableConfigurable("Kotlin", "Kotlin",
             defaultFill = GridBagConstraints.HORIZONTAL
             nextLine()
         }
-        panel.add(showPropertyAccessorsComplexity, gb.next().weightx(1.0).weighty(1.0))
+        panel.add(considerPropertyAccessorsComplexity, gb.next().weightx(1.0).weighty(1.0))
         gb.nextLine()
         panel.reset()
         return panel
@@ -43,12 +43,12 @@ class KtCCSettingsConfigurable : BoundSearchableConfigurable("Kotlin", "Kotlin",
 
     override fun isModified(): Boolean {
         return super.isModified()
-                || settings.showPropertyAccessorsComplexity != showPropertyAccessorsComplexity.isSelected
+                || settings.considerPropertyAccessorsComplexity != considerPropertyAccessorsComplexity.isSelected
     }
 
     override fun apply() {
         super.apply()
-        settings.showPropertyAccessorsComplexity = showPropertyAccessorsComplexity.isSelected
+        settings.considerPropertyAccessorsComplexity = considerPropertyAccessorsComplexity.isSelected
 
         invokeLater {
             InlayHintsPassFactory.forceHintsUpdateOnNextPass()
@@ -60,6 +60,6 @@ class KtCCSettingsConfigurable : BoundSearchableConfigurable("Kotlin", "Kotlin",
 
     override fun reset() {
         super.reset()
-        showPropertyAccessorsComplexity.isSelected = settings.showPropertyAccessorsComplexity
+        considerPropertyAccessorsComplexity.isSelected = settings.considerPropertyAccessorsComplexity
     }
 }
