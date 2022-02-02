@@ -1,6 +1,6 @@
 package cc
 
-import cc.kotlin.KtCCInlayProvider
+import cc.kotlin.KtLanguageInfoProvider
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase
 import junit.framework.TestCase
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -11,14 +11,13 @@ class KotlinComplexityCalculationTest : LightPlatformCodeInsightTestCase() {
 
     private fun doTest(path: String, complexity: Int) {
         configureByFile(path)
-        val getVisitor = KtCCInlayProvider()::getElementVisitor
+        val getVisitor = KtLanguageInfoProvider()::getVisitor
 
         TestCase.assertEquals(
             complexity,
-            LanguageInfoProvider.CCInlayHintsCollector.Companion.getComplexityScore(
-                requireNotNull(file.getChildOfType<KtNamedFunction>()),
-                getVisitor
-            )
+            ComplexitySink().apply {
+                requireNotNull(file.getChildOfType<KtNamedFunction>()).accept(getVisitor(this))
+            }.getComplexity()
         )
     }
 

@@ -16,7 +16,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.inlayProviderFactory
-                implementation="cc.MyInlayHintsProviderFactory"/>
+                implementation="cc.CCInlayHintsProviderFactory"/>
         <applicationConfigurable parentId="tools"
                                  instance="cc.settings.CognitiveComplexitySettingsConfigurable"
                                  id="Settings.CognitiveComplexity"/>

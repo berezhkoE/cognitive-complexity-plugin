@@ -20,9 +20,65 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import java.awt.Color
 import javax.swing.JPanel
+import com.intellij.openapi.project.Project
+
+abstract class MyLanguageVisitor : PsiRecursiveElementVisitor(true) {
+    override fun visitElement(element: PsiElement) {
+        processElement(element)
+        if (!element.isBinaryExpression()) {
+            super.visitElement(element)
+        }
+        postProcess(element)
+    }
+
+    /**
+     * Increases complexity and nesting
+     */
+    protected abstract fun processElement(element: PsiElement)
+
+    /**
+     * Decreases nesting
+     */
+    protected abstract fun postProcess(element: PsiElement)
+
+    /**
+     * @return true if PsiElement is Binary Expression with operations || or &&
+     */
+    protected abstract fun PsiElement.isBinaryExpression(): Boolean
+}
+
+class ComplexitySink {
+    private var complexity = 0
+    private var nesting = 0
+
+    fun decreaseNesting() {
+        nesting--
+    }
+
+    fun increaseNesting() {
+        nesting++
+    }
+
+    fun increaseComplexity() {
+        complexity++
+    }
+
+    fun increaseComplexity(amount: Int) {
+        complexity += amount
+    }
+
+    fun increaseComplexityAndNesting() {
+        complexity += 1 + nesting
+        nesting++
+    }
+
+    fun getComplexity(): Int {
+        return complexity
+    }
+}
 
 @Suppress("UnstableApiUsage")
-abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
+interface LanguageInfoProvider {
     companion object {
         var EP_NAME: ExtensionPointName<LanguageInfoProvider> =
             ExtensionPointName.create("berezhkoe.cognitivecomplexity.languageInfoProvider")
@@ -30,72 +86,80 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
         val myKey = SettingsKey<NoSettings>("cognitive.complexity.hint")
     }
 
-    override val key: SettingsKey<NoSettings> = myKey
+    fun getVisitor(sink: ComplexitySink): MyLanguageVisitor
 
-    override val name: String = "CognitiveComplexityInlayProvider"
+    val language: Language
 
-    override val previewText = "CognitiveComplexityInlayProvider"
+    fun isClassMember(element: PsiElement): Boolean
 
-    override fun createConfigurable(settings: NoSettings): ImmediateConfigurable {
-        return object : ImmediateConfigurable {
-            override fun createComponent(listener: ChangeListener) = JPanel()
+    fun isClassWithBody(element: PsiElement): Boolean
+}
+
+@Suppress("UnstableApiUsage")
+internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
+    override fun getProvidersInfo(project: Project): List<ProviderInfo<out Any>> {
+        return LanguageInfoProvider.EP_NAME
+            .extensionList.map { ProviderInfo(it.language, MyInlayHintsProvider(it)) }
+    }
+
+    private class MyInlayHintsProvider(private val languageInfoProvider: LanguageInfoProvider) :
+        InlayHintsProvider<NoSettings> {
+        override fun getCollectorFor(
+            file: PsiFile,
+            editor: Editor,
+            settings: NoSettings,
+            sink: InlayHintsSink
+        ): InlayHintsCollector {
+            return MyFactoryInlayHintsCollector(languageInfoProvider, editor)
         }
-    }
 
-    override fun getCollectorFor(
-        file: PsiFile,
-        editor: Editor,
-        settings: NoSettings,
-        sink: InlayHintsSink
-    ): InlayHintsCollector? {
-        return CCInlayHintsCollector(
-            editor,
-            getLanguage()
-        )
-    }
+        class MyFactoryInlayHintsCollector(
+            private val languageInfoProvider: LanguageInfoProvider,
+            private val editor: Editor
+        ) :
+            FactoryInlayHintsCollector(editor) {
+            private val settings = CCSettings.getInstance()
 
-    override fun createSettings() = NoSettings()
-
-    abstract fun getLanguage(): Language
-
-    abstract fun getElementVisitor(element: PsiElement): CCElementVisitor
-
-    abstract fun isClassMember(element: PsiElement): Boolean
-
-    abstract fun isClassWithBody(element: PsiElement): Boolean
-
-    class CCInlayHintsCollector(
-        private val editor: Editor,
-        private val language: Language
-    ) :
-        FactoryInlayHintsCollector(editor) {
-
-        private val provider = EP_NAME.extensionList.first { it.getLanguage() == language }
-
-        private val settings = CCSettings.getInstance()
-
-        companion object {
-            fun getComplexityScore(
-                element: PsiElement,
-                getVisitor: (element: PsiElement) -> CCElementVisitor
-            ): Int {
+            private fun getClassMemberComplexity(element: PsiElement): Int {
                 return CachedValuesManager.getCachedValue(element) {
                     CachedValueProvider.Result.create(
-                        getVisitor(element).evalComplexity(element),
+                        ComplexitySink().apply {
+                            element.accept(languageInfoProvider.getVisitor(this))
+                        }.getComplexity(),
                         PsiModificationTracker.MODIFICATION_COUNT
                     )
                 }
             }
-        }
 
-        override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
-            val complexityScore = if (provider.isClassWithBody(element)) {
-                evalClassComplexity(element)
-            } else if (provider.isClassMember(element)) {
-                getComplexityScore(element, provider::getElementVisitor)
-            } else null
+            private fun getClassComplexity(element: PsiElement): Int {
+                return ComplexitySink().also { sink ->
+                    element.accept(object : PsiRecursiveElementVisitor() {
+                        override fun visitElement(element: PsiElement) {
+                            if (languageInfoProvider.isClassMember(element)) {
+                                sink.increaseComplexity(getClassMemberComplexity(element))
+                            } else {
+                                super.visitElement(element)
+                            }
+                        }
+                    })
+                }.getComplexity()
+            }
 
-            complexityScore?.let { score ->
+            override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
+                val complexityScore = if (languageInfoProvider.isClassWithBody(element)) {
+                    getClassComplexity(element)
+                } else if (languageInfoProvider.isClassMember(element)) {
+                    getClassMemberComplexity(element)
+                } else null
+
+                complexityScore?.let { score ->
+                    applySinkResults(element, score, sink)
+                }
+
+                return true
+            }
+
+            private fun applySinkResults(element: PsiElement, score: Int, sink: InlayHintsSink) {
                 getPresentation(element, score)?.let {
                     sink.addBlockElement(
                         offset = if (settings.showBeforeAnnotations) {
@@ -110,132 +174,93 @@ abstract class LanguageInfoProvider : InlayHintsProvider<NoSettings> {
                     )
                 }
             }
-            return true
-        }
 
-        private fun getPresentation(element: PsiElement, complexityScore: Int): InlayPresentation? {
-            val hintSettings = getHintSettings(complexityScore) ?: return null
-            return InsetPresentation(
-                RoundWithBackgroundPresentation(
-                    InsetPresentation(
-                        factory.text(getInlayText(complexityScore, hintSettings)),
-                        left = 7,
-                        right = 7,
-                        top = 2,
-                        down = 2
-                    ),
-                    8,
-                    8,
-                    getInlayColor(hintSettings),
-                    0.9f
-                ), top = 2, down = 2
-            ).shiftTo(
-                if (settings.showBeforeAnnotations) {
-                    element.startOffsetSkippingComments
-                } else {
-                    element.startOffset
-                }, editor
-            )
-        }
+            private fun InlayPresentation.shiftTo(offset: Int, editor: Editor): InlayPresentation {
+                val document = editor.document
+                val column = offset - document.getLineStartOffset(document.getLineNumber(offset))
 
-        private fun getHintSettings(complexityScore: Int): CCSettingsState.ThresholdState? {
-            if (settings.thresholdsList.isNotEmpty()) {
-                val sortedSettings = settings.thresholdsList
-                    .apply { sortWith { o1, o2 -> o1.threshold.compareTo(o2.threshold) } }
-                return sortedSettings
-                    .firstOrNull {
-                        if (complexityScore == 0) {
-                            it.threshold == 0
-                        } else {
-                            complexityScore <= it.threshold
-                        }
-                    } ?: return if (complexityScore != 0) {
-                    sortedSettings.last()
-                } else null
+                return factory.seq(factory.textSpacePlaceholder(column, true), this)
             }
-            return null
-        }
 
-        private fun getInlayText(complexityScore: Int, hintSettings: CCSettingsState.ThresholdState): String {
-            return hintSettings
-                .let { it.text!! }
-                .replaceFirst("%complexity%", complexityScore.toString())
-        }
-
-        private fun getInlayColor(hintSettings: CCSettingsState.ThresholdState): Color {
-            return hintSettings
-                .let { settings.getColor(it.color!!)!! }
-        }
-
-        private fun InlayPresentation.shiftTo(offset: Int, editor: Editor): InlayPresentation {
-            val document = editor.document
-            val column = offset - document.getLineStartOffset(document.getLineNumber(offset))
-
-            return factory.seq(factory.textSpacePlaceholder(column, true), this)
-        }
-
-        private fun evalClassComplexity(element: PsiElement): Int {
-            var complexity = 0
-
-            element.accept(object : PsiRecursiveElementVisitor() {
-                override fun visitElement(element: PsiElement) {
-                    if (provider.isClassMember(element)) {
-                        complexity += getComplexityScore(element, provider::getElementVisitor)
+            private fun getPresentation(element: PsiElement, complexityScore: Int): InlayPresentation? {
+                val hintSettings = getHintSettings(complexityScore) ?: return null
+                return InsetPresentation(
+                    RoundWithBackgroundPresentation(
+                        InsetPresentation(
+                            factory.text(getInlayText(complexityScore, hintSettings)),
+                            left = 7,
+                            right = 7,
+                            top = 2,
+                            down = 2
+                        ),
+                        8,
+                        8,
+                        getInlayColor(hintSettings),
+                        0.9f
+                    ), top = 2, down = 2
+                ).shiftTo(
+                    if (settings.showBeforeAnnotations) {
+                        element.startOffsetSkippingComments
                     } else {
-                        super.visitElement(element)
-                    }
+                        element.startOffset
+                    }, editor
+                )
+            }
+
+            private fun getHintSettings(complexityScore: Int): CCSettingsState.ThresholdState? {
+                if (settings.thresholdsList.isNotEmpty()) {
+                    val sortedSettings = settings.thresholdsList
+                        .apply { sortWith { o1, o2 -> o1.threshold.compareTo(o2.threshold) } }
+                    return sortedSettings
+                        .firstOrNull {
+                            if (complexityScore == 0) {
+                                it.threshold == 0
+                            } else {
+                                complexityScore <= it.threshold
+                            }
+                        } ?: return if (complexityScore != 0) {
+                        sortedSettings.last()
+                    } else null
                 }
-            })
-            return complexity
-        }
-
-        override fun equals(other: Any?): Boolean {
-            if (other is CCInlayHintsCollector) {
-                return editor == other.editor
+                return null
             }
-            return false
-        }
 
-        override fun hashCode(): Int {
-            return editor.hashCode()
-        }
-    }
-
-    abstract class CCElementVisitor : PsiRecursiveElementVisitor(true) {
-        protected var complexity = 0
-        protected var nesting = 0
-
-        fun evalComplexity(element: PsiElement): Int {
-            element.accept(this)
-            return complexity
-        }
-
-        protected fun increaseComplexityAndNesting() {
-            complexity += 1 + nesting
-            nesting++
-        }
-
-        override fun visitElement(element: PsiElement) {
-            processElement(element)
-            if (!element.isBinaryExpression()) {
-                super.visitElement(element)
+            private fun getInlayText(complexityScore: Int, hintSettings: CCSettingsState.ThresholdState): String {
+                return hintSettings
+                    .let { it.text!! }
+                    .replaceFirst("%complexity%", complexityScore.toString())
             }
-            postProcess(element)
+
+            private fun getInlayColor(hintSettings: CCSettingsState.ThresholdState): Color {
+                return hintSettings
+                    .let { settings.getColor(it.color!!)!! }
+            }
+
+
+            override fun equals(other: Any?): Boolean {
+                if (other is MyFactoryInlayHintsCollector) {
+                    return editor == other.editor
+                }
+                return false
+            }
+
+            override fun hashCode(): Int {
+                return editor.hashCode()
+            }
         }
 
-        /**
-         * Increases complexity and nesting
-         */
-        protected abstract fun processElement(element: PsiElement)
+        override fun createSettings() = NoSettings()
 
-        /**
-         * Decreases nesting
-         */
-        protected abstract fun postProcess(element: PsiElement)
+        override val key: SettingsKey<NoSettings> = LanguageInfoProvider.myKey
 
-        /**
-         * @return true if PsiElement is Binary Expression with operations || or &&
-         */
-        protected abstract fun PsiElement.isBinaryExpression(): Boolean
+        override val name: String = "CCInlayProvider"
+
+        override val previewText = "CCInlayProvider"
+
+        override fun createConfigurable(settings: NoSettings): ImmediateConfigurable {
+            return object : ImmediateConfigurable {
+                override fun createComponent(listener: ChangeListener) = JPanel()
+            }
+        }
     }
 }
