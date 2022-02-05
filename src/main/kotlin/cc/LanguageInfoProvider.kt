@@ -10,21 +10,20 @@ import com.intellij.lang.Language
 import com.intellij.openapi.editor.BlockInlayPriority
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
-import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
-import java.awt.Color
-import javax.swing.JPanel
-import com.intellij.openapi.project.Project
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.applyIf
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
+import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
+import java.awt.Color
+import javax.swing.JPanel
 
 abstract class MyLanguageVisitor : PsiRecursiveElementVisitor(true) {
     override fun visitElement(element: PsiElement) {
@@ -125,13 +124,19 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
             private val settings = CCSettings.getInstance()
 
             private fun getClassMemberComplexity(element: PsiElement): Int {
-                return CachedValuesManager.getCachedValue(element) {
-                    CachedValueProvider.Result.create(
-                        ComplexitySink().apply {
-                            element.accept(languageInfoProvider.getVisitor(this))
-                        }.getComplexity(),
-                        PsiModificationTracker.MODIFICATION_COUNT
-                    )
+                return obtainElementComplexity(element, languageInfoProvider)
+            }
+
+            companion object {
+                private fun obtainElementComplexity(element: PsiElement, languageInfoProvider: LanguageInfoProvider): Int {
+                    return CachedValuesManager.getCachedValue(element) {
+                        CachedValueProvider.Result.create(
+                            ComplexitySink().apply {
+                                element.accept(languageInfoProvider.getVisitor(this))
+                            }.getComplexity(),
+                            element
+                        )
+                    }
                 }
             }
 
