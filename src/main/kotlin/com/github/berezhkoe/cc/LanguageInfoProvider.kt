@@ -129,7 +129,10 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
             }
 
             companion object {
-                private fun obtainElementComplexity(element: PsiElement, languageInfoProvider: LanguageInfoProvider): Int {
+                private fun obtainElementComplexity(
+                    element: PsiElement,
+                    languageInfoProvider: LanguageInfoProvider
+                ): Int {
                     return CachedValuesManager.getCachedValue(element) {
                         CachedValueProvider.Result.create(
                             ComplexitySink().apply {
@@ -212,7 +215,11 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
 
             private fun getHintOffset(element: PsiElement): Int {
                 if (element is KtObjectDeclaration) {
-                    element.parentOfTypes(KtProperty::class, KtReturnExpression::class)?.let { return it.startOffset }
+                    element.parentOfTypes(KtProperty::class, KtReturnExpression::class)?.let {
+                        if (editor.document.getLineNumber(it.startOffset) == editor.document.getLineNumber(element.startOffset)) {
+                            return it.startOffset
+                        }
+                    }
                 }
                 return element.startOffset
             }
