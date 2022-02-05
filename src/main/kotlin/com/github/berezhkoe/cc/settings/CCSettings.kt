@@ -1,6 +1,6 @@
-package cc.settings
+package com.github.berezhkoe.cc.settings
 
-import cc.CCBundle.message
+import com.github.berezhkoe.cc.CCBundle.message
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State

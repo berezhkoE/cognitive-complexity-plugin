@@ -1,7 +1,7 @@
-package cc
+package com.github.berezhkoe.cc
 
-import cc.settings.CCSettings
-import cc.settings.CCSettingsState
+import com.github.berezhkoe.cc.settings.CCSettings
+import com.github.berezhkoe.cc.settings.CCSettingsState
 import com.intellij.codeInsight.hints.*
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.InsetPresentation

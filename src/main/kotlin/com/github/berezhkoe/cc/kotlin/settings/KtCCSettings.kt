@@ -1,4 +1,4 @@
-package cc.kotlin.settings
+package com.github.berezhkoe.cc.kotlin.settings
 
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State

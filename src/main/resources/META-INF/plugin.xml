@@ -10,18 +10,18 @@
 
     <extensionPoints>
         <extensionPoint name="languageInfoProvider"
-                        interface="cc.LanguageInfoProvider"
+                        interface="com.github.berezhkoe.cc.LanguageInfoProvider"
                         dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.inlayProviderFactory
-                implementation="cc.CCInlayHintsProviderFactory"/>
+                implementation="com.github.berezhkoe.cc.CCInlayHintsProviderFactory"/>
         <applicationConfigurable parentId="tools"
-                                 instance="cc.settings.CognitiveComplexitySettingsConfigurable"
+                                 instance="com.github.berezhkoe.cc.settings.CognitiveComplexitySettingsConfigurable"
                                  id="Settings.CognitiveComplexity"/>
         <applicationService
-                serviceImplementation="cc.settings.CCSettings"/>
+                serviceImplementation="com.github.berezhkoe.cc.settings.CCSettings"/>
 
     </extensions>
 </idea-plugin>

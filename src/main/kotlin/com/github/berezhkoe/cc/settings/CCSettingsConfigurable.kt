@@ -1,7 +1,7 @@
-package cc.settings
+package com.github.berezhkoe.cc.settings
 
-import cc.CCBundle.message
-import cc.settings.CCSettingsState.ThresholdState
+import com.github.berezhkoe.cc.CCBundle.message
+import com.github.berezhkoe.cc.settings.CCSettingsState.ThresholdState
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.hints.InlayHintsPassFactory
 import com.intellij.icons.AllIcons

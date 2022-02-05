@@ -1,6 +1,6 @@
-package cc.settings
+package com.github.berezhkoe.cc.settings
 
-import cc.CCBundle.message
+import com.github.berezhkoe.cc.CCBundle.message
 import com.intellij.openapi.components.BaseState
 
 class CCSettingsState: BaseState() {

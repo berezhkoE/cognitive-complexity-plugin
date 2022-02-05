@@ -1,6 +1,6 @@
-package cc
+package com.github.berezhkoe.cc
 
-import cc.kotlin.KtLanguageInfoProvider
+import com.github.berezhkoe.cc.kotlin.KtLanguageInfoProvider
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase
 import junit.framework.TestCase
 import org.jetbrains.kotlin.psi.KtNamedFunction

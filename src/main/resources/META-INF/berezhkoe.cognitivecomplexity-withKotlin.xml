@@ -2,15 +2,15 @@
     <extensions defaultExtensionNs="berezhkoe.cognitivecomplexity">
         <languageInfoProvider
                 id="KtCCLanguageInfoProvider"
-                implementation="cc.kotlin.KtLanguageInfoProvider"/>
+                implementation="com.github.berezhkoe.cc.kotlin.KtLanguageInfoProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable parentId="Settings.CognitiveComplexity"
-                                 instance="cc.kotlin.settings.KtCCSettingsConfigurable"
+                                 instance="com.github.berezhkoe.cc.kotlin.settings.KtCCSettingsConfigurable"
                                  id="Settings.CognitiveComplexity.Kotlin"/>
         <applicationService
-                serviceImplementation="cc.kotlin.settings.KtCCSettings"/>
+                serviceImplementation="com.github.berezhkoe.cc.kotlin.settings.KtCCSettings"/>
 
     </extensions>
 </idea-plugin>

@@ -1,4 +1,4 @@
-package cc
+package com.github.berezhkoe.cc
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.NonNls

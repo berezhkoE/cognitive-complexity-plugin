@@ -1,9 +1,9 @@
-package cc.kotlin
+package com.github.berezhkoe.cc.kotlin
 
-import cc.ComplexitySink
-import cc.LanguageInfoProvider
-import cc.MyLanguageVisitor
-import cc.kotlin.settings.KtCCSettings
+import com.github.berezhkoe.cc.ComplexitySink
+import com.github.berezhkoe.cc.LanguageInfoProvider
+import com.github.berezhkoe.cc.MyLanguageVisitor
+import com.github.berezhkoe.cc.kotlin.settings.KtCCSettings
 import com.intellij.lang.Language
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementVisitor

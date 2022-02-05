@@ -1,6 +1,6 @@
-package cc.kotlin.settings
+package com.github.berezhkoe.cc.kotlin.settings
 
-import cc.CCBundle
+import com.github.berezhkoe.cc.CCBundle
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.hints.InlayHintsPassFactory
 import com.intellij.openapi.application.invokeLater
