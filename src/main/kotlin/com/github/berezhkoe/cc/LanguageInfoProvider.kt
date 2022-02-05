@@ -16,10 +16,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.parentOfTypes
 import com.intellij.util.applyIf
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import java.awt.Color
@@ -206,13 +207,14 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
                             0.9f
                         ), top = 2, down = 2
                     )
-                }.shiftTo(
-                    if (element is KtObjectDeclaration && element.parentOfType<KtProperty>() != null) {
-                        element.parentOfType<KtProperty>()!!.startOffset
-                    } else {
-                        element.startOffset
-                    }, editor
-                )
+                }.shiftTo(getHintOffset(element), editor)
+            }
+
+            private fun getHintOffset(element: PsiElement): Int {
+                if (element is KtObjectDeclaration) {
+                    element.parentOfTypes(KtProperty::class, KtReturnExpression::class)?.let { return it.startOffset }
+                }
+                return element.startOffset
             }
 
             private fun getTextPresentation(
