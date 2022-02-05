@@ -186,9 +186,17 @@ private class ThresholdsTableModel(val settings: CCSettings) :
     fun addHintColor(color: String?) {
         val colorName = resolveCustomColor(color) ?: return
 
-        hintConfigurations.add(0, ThresholdState.fromMapping(0, colorName, settings.defaultText!!))
+        val threshold = hintConfigurations.maxByOrNull { it.threshold }?.threshold?.plus(1) ?: 0
+        hintConfigurations.add(
+            0,
+            ThresholdState.fromMapping(
+                threshold,
+                colorName,
+                settings.defaultText!!
+            )
+        )
         fireTableRowsInserted(0, 0)
-        selectRow(0)
+        selectRow(hintConfigurations.size - 1)
     }
 
     fun getColors(): List<String> {
