@@ -2,4 +2,5 @@
 
 # Cognitive Complexity for IDEA Changelog
 
-## [Unreleased]
+## 0.0.1
+- Added support for Kotlin language
