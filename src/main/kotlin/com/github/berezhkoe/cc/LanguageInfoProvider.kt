@@ -286,6 +286,8 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
 
         override val previewText = "CCInlayProvider"
 
+        override val isVisibleInSettings: Boolean = false
+
         override fun createConfigurable(settings: NoSettings): ImmediateConfigurable {
             return object : ImmediateConfigurable {
                 override fun createComponent(listener: ChangeListener) = JPanel()
