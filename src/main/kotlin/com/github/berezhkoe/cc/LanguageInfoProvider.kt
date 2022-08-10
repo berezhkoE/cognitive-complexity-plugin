@@ -182,7 +182,7 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
                         },
                         relatesToPrecedingText = false,
                         showAbove = true,
-                        priority = BlockInlayPriority.CODE_VISION,
+                        priority = BlockInlayPriority.DOC_RENDER,
                         presentation = it
                     )
                 }
