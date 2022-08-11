@@ -124,22 +124,23 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
             FactoryInlayHintsCollector(editor) {
             private val settings = CCSettings.getInstance()
 
-            private fun getClassMemberComplexity(element: PsiElement): Int {
-                return obtainElementComplexity(element, languageInfoProvider)
-            }
-
             companion object {
-                private fun obtainElementComplexity(
-                    element: PsiElement,
-                    languageInfoProvider: LanguageInfoProvider
-                ): Int {
+                private fun findProviderForElement(element: PsiElement): LanguageInfoProvider {
+                    val language = element.language
+                    val provider = LanguageInfoProvider.EP_NAME.findFirstSafe { it.language == language }
+                    checkNotNull(provider) { "Failed to obtain LanguageInfoProvider for language with id: ${language.id}" }
+                    return provider
+                }
+
+                private fun obtainElementComplexity(element: PsiElement): Int {
                     return CachedValuesManager.getCachedValue(element) {
-                        CachedValueProvider.Result.create(
-                            ComplexitySink().apply {
-                                element.accept(languageInfoProvider.getVisitor(this))
-                            }.getComplexity(),
-                            element
-                        )
+                        // Search for the first provider with the same language on every recompute,
+                        // so there is no dependency on the reference to that provider.
+                        val provider = findProviderForElement(element)
+                        val sink = ComplexitySink()
+                        element.accept(provider.getVisitor(sink))
+                        val complexity = sink.getComplexity()
+                        CachedValueProvider.Result.create(complexity, element)
                     }
                 }
             }
@@ -149,7 +150,7 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
                     element.accept(object : PsiRecursiveElementVisitor() {
                         override fun visitElement(element: PsiElement) {
                             if (languageInfoProvider.isClassMember(element)) {
-                                sink.increaseComplexity(getClassMemberComplexity(element))
+                                sink.increaseComplexity(obtainElementComplexity(element))
                             } else {
                                 super.visitElement(element)
                             }
@@ -162,7 +163,7 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
                 val complexityScore = if (languageInfoProvider.isClassWithBody(element)) {
                     getClassComplexity(element)
                 } else if (languageInfoProvider.isClassMember(element)) {
-                    getClassMemberComplexity(element)
+                    obtainElementComplexity(element)
                 } else null
 
                 complexityScore?.let { score ->
@@ -284,6 +285,8 @@ internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
         override val name: String = "CCInlayProvider"
 
         override val previewText = "CCInlayProvider"
+
+        override val isVisibleInSettings: Boolean = false
 
         override fun createConfigurable(settings: NoSettings): ImmediateConfigurable {
             return object : ImmediateConfigurable {
