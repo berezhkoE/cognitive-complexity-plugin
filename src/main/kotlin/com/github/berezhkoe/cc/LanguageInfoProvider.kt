@@ -101,7 +101,7 @@ interface LanguageInfoProvider {
 
 @Suppress("UnstableApiUsage")
 internal class CCInlayHintsProviderFactory : InlayHintsProviderFactory {
-    override fun getProvidersInfo(project: Project): List<ProviderInfo<out Any>> {
+    override fun getProvidersInfo(): List<ProviderInfo<out Any>> {
         return LanguageInfoProvider.EP_NAME
             .extensionList.map { ProviderInfo(it.language, MyInlayHintsProvider(it)) }
     }
