@@ -8,4 +8,7 @@
 ## 0.0.2
 - Update plugin to work with 222+ IDE versions
 
+## 0.0.3
+- Update plugin to work with 231+ IDE versions
+
 ## [Unreleased]
